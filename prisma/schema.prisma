@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      =  env("DATABASE_URL")  
+}
+
+model bookmarks {
+  id          Int                   @id @default(autoincrement()) @db.UnsignedInt
+  user_id     Int                   @db.UnsignedInt
+  title       String                @db.VarChar(200)
+  url         String                @db.VarChar(500)
+  source_type bookmarks_source_type @default(OTHER)
+  category    String?               @db.VarChar(50)
+  created_at  DateTime              @default(now()) @db.DateTime(0)
+  note        String?               @db.Text
+  users       users                 @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_bookmarks_user")
+
+  @@index([user_id], map: "fk_bookmarks_user_idx")
+}
+
+model habit_logs {
+  id         Int      @id @default(autoincrement()) @db.UnsignedInt
+  user_id    Int      @db.UnsignedInt
+  habit_id   Int      @db.UnsignedInt
+  log_date   DateTime @db.Date
+  value      Decimal? @db.Decimal(5, 2)
+  note       String?  @db.Text
+  created_at DateTime @default(now()) @db.DateTime(0)
+  habits     habits   @relation(fields: [habit_id], references: [id], onDelete: Cascade, map: "fk_habit_logs_habit")
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_habit_logs_user")
+
+  @@index([habit_id], map: "fk_habit_logs_habit_idx")
+  @@index([user_id], map: "fk_habit_logs_user_idx")
+}
+
+model habits {
+  id           Int          @id @default(autoincrement()) @db.UnsignedInt
+  user_id      Int          @db.UnsignedInt
+  name         String       @db.VarChar(100)
+  description  String?      @db.Text
+  DECIMAL_5_2_ Decimal?     @map("DECIMAL(5,2)") @db.Decimal(5, 2)
+  unit         String?      @db.VarChar(20)
+  is_active    Boolean      @default(true)
+  created_at   DateTime     @default(now()) @db.DateTime(0)
+  updated_at   DateTime     @default(now()) @db.DateTime(0)
+  habit_logs   habit_logs[]
+  users        users        @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_habits_user")
+
+  @@index([user_id], map: "fk_habits_user_idx")
+}
+
+model projects {
+  id          Int             @id @default(autoincrement()) @db.UnsignedInt
+  user_id     Int             @db.UnsignedInt
+  name        String          @db.VarChar(100)
+  description String?         @db.LongText
+  status      projects_status @default(ACTIVE)
+  start_date  DateTime?       @db.Date
+  created_at  DateTime        @default(now()) @db.DateTime(0)
+  updated_at  DateTime        @default(now()) @db.DateTime(0)
+  users       users           @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_projects_user")
+  tasks       tasks[]
+
+  @@index([user_id], map: "fk_projects_user_idx")
+}
+
+model quick_notes {
+  id         Int      @id @default(autoincrement()) @db.UnsignedInt
+  user_id    Int      @db.UnsignedInt
+  title      String?  @db.VarChar(200)
+  content    String   @db.Text
+  created_at DateTime @default(now()) @db.DateTime(0)
+  updated_at DateTime @default(now()) @db.DateTime(0)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_quick_notes_user")
+
+  @@index([user_id], map: "fk_quick_notes_user_idx")
+}
+
+model study_items {
+  id                    Int                @id @default(autoincrement()) @db.UnsignedInt
+  user_id               Int                @db.UnsignedInt
+  type                  study_items_type   @default(SELF)
+  platform              String?            @db.VarChar(100)
+  url                   String?            @db.VarChar(500)
+  status                study_items_status @default(ACTIVE)
+  target_hours_per_week Decimal?           @db.Decimal(4, 1)
+  description           String?            @db.Text
+  created_at            DateTime           @default(now()) @db.DateTime(0)
+  updated_at            DateTime           @default(now()) @db.DateTime(0)
+  users                 users              @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_study_logs_item")
+  study_logs            study_logs[]
+  study_schedule        study_schedule[]
+
+  @@index([user_id], map: "fk_study_logs_item_idx")
+}
+
+model study_logs {
+  id             Int         @id @default(autoincrement()) @db.UnsignedInt
+  user_id        Int         @db.UnsignedInt
+  study_item_id  Int         @db.UnsignedInt
+  study_date     DateTime    @db.Date
+  duration_hours Decimal     @db.Decimal(4, 2)
+  topic          String?     @db.VarChar(200)
+  note           String?     @db.Text
+  created_at     DateTime?   @default(now()) @db.DateTime(0)
+  study_items    study_items @relation(fields: [study_item_id], references: [id], onDelete: Cascade, map: "fk_study_logs_items")
+  users          users       @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_study_logs_users")
+
+  @@index([study_item_id], map: "fk_study_logs_item_idx")
+  @@index([user_id], map: "fk_study_logs_user_idx")
+}
+
+model study_schedule {
+  id            Int         @id @default(autoincrement()) @db.UnsignedInt
+  user_id       Int         @db.UnsignedInt
+  study_item_id Int         @db.UnsignedInt
+  day_of_week   Int         @db.TinyInt
+  start_time    DateTime    @db.Time(0)
+  end_time      DateTime    @db.Time(0)
+  note          String?     @db.Text
+  is_active     Boolean     @default(true)
+  created_at    DateTime    @default(now()) @db.DateTime(0)
+  updated_at    DateTime    @default(now()) @db.DateTime(0)
+  study_items   study_items @relation(fields: [study_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_study_schedule_item")
+  users         users       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_study_schedule_user")
+
+  @@index([study_item_id], map: "fk_study_schedule_item_idx")
+  @@index([user_id], map: "fk_study_schedule_user_idx")
+}
+
+model tasks {
+  id           Int            @id @default(autoincrement()) @db.UnsignedInt
+  user_id      Int            @db.UnsignedInt
+  project_id   Int?           @db.UnsignedInt
+  title        String         @db.VarChar(200)
+  description  String?        @db.Text
+  type         tasks_type     @default(OTHER)
+  status       tasks_status   @default(TODO)
+  priority     tasks_priority @default(MEDIUM)
+  due_date     DateTime?      @db.DateTime(0)
+  completed_at DateTime?      @db.DateTime(0)
+  created_at   DateTime       @default(now()) @db.DateTime(0)
+  updated_at   DateTime       @unique(map: "updated_at_UNIQUE") @default(now()) @db.DateTime(0)
+  projects     projects?      @relation(fields: [project_id], references: [id], onDelete: Cascade, map: "fk_tasks_project")
+  users        users          @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_tasks_user")
+
+  @@index([project_id], map: "fk_tasks_project_idx")
+  @@index([user_id], map: "fk_tasks_user_idx")
+}
+
+model users {
+  id             Int              @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  email          String           @unique(map: "email_UNIQUE") @db.VarChar(255)
+  name           String?          @db.VarChar(100)
+  password_hash  String?          @db.VarChar(255)
+  created_at     DateTime         @default(now()) @db.DateTime(0)
+  updated_at     DateTime         @default(now()) @db.DateTime(0)
+  bookmarks      bookmarks[]
+  habit_logs     habit_logs[]
+  habits         habits[]
+  projects       projects[]
+  quick_notes    quick_notes[]
+  study_items    study_items[]
+  study_logs     study_logs[]
+  study_schedule study_schedule[]
+  tasks          tasks[]
+}
+
+enum study_items_type {
+  SUBJECT
+  COURSE
+  SELF
+}
+
+enum bookmarks_source_type {
+  YOUTUBE
+  SPOTIFY
+  ARTICLE
+  TUTORIAL
+  OTHER
+}
+
+enum projects_status {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  ARCHIVED
+}
+
+enum tasks_type {
+  DAILY
+  MAIN
+  OTHER
+}
+
+enum study_items_status {
+  ACTIVE
+  COMPLETED
+  DROPPED
+}
+
+enum tasks_status {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum tasks_priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
