@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
+interface Module {
+  name: string;
+  url: string;
+}
+
 interface LifeDashboardProps {
-  initialCircles: string[];
+  modules: Module[];
 }
 
 // Component Nền Động (Chứa lưới và các đốm sáng)
@@ -37,64 +42,12 @@ const AnimatedBackground = () => (
 );
 
 
-export default function LifeDashboard({ initialCircles }: LifeDashboardProps) {
-  const [active, setActive] = useState<string | null>(null);
+export default function LifeDashboard({ modules }: LifeDashboardProps) {
+  const router = useRouter();
 
-  // --- 1. GIAO DIỆN CHI TIẾT (KHI CLICK) ---
-  if (active) {
-    return (
-      <div className="relative w-full h-screen flex items-center justify-center overflow-hidden">
-        {/* Giữ nguyên nền động phía sau */}
-        <AnimatedBackground />
-
-        {/* BẢNG TRẮNG - CHỮ ĐEN */}
-        <div className="max-w-2xl w-[90%] bg-white rounded-[2rem] shadow-2xl shadow-cyan-500/20 border border-white/50 p-10 flex flex-col gap-6 relative z-10">
-
-          {/* Header nhỏ */}
-          <div className="text-sm font-bold tracking-[0.25em] text-cyan-600 uppercase">
-            System Interface
-          </div>
-
-          {/* Tiêu đề chính (Màu đen/xám đậm) */}
-          <h1 className="text-5xl font-extrabold mb-2 text-gray-900 drop-shadow-sm">
-            {active}
-          </h1>
-
-          {/* Mô tả (Màu xám) */}
-          <p className="text-lg text-gray-600 mb-4 font-medium">
-            Đang truy cập dữ liệu quản lý cho: <span className="font-bold text-cyan-700">{active}</span>.
-          </p>
-
-          {/* CÁC Ô THÔNG TIN CON (Nền xám nhạt - Chữ đen) */}
-          <div className="grid grid-cols-2 gap-6 text-base">
-            <div className="bg-gray-100 border border-gray-200 rounded-3xl p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">
-                Khởi tạo
-              </div>
-              <div className="font-bold text-xl text-gray-800">01.12.2025</div>
-            </div>
-
-            <div className="bg-gray-100 border border-gray-200 rounded-3xl p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">
-                Trạng thái
-              </div>
-              <div className="font-bold text-xl text-green-600 flex items-center gap-2">
-                HOẠT ĐỘNG <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span></span>
-              </div>
-            </div>
-          </div>
-
-          {/* Nút quay lại (Vẫn giữ màu xanh cho đẹp, hoặc đổi thành đen nếu thích) */}
-          <button
-            onClick={() => setActive(null)}
-            className="mt-6 w-full py-4 rounded-2xl text-lg font-bold bg-gray-900 text-white hover:bg-cyan-600 transition-colors shadow-lg flex items-center justify-center gap-2"
-          >
-            ← Quay lại Hệ Thống
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleModuleClick = (module: Module) => {
+    router.push(module.url);
+  };
 
   // --- 2. GIAO DIỆN XOAY (MÀN HÌNH CHÍNH) ---
   return (
@@ -129,13 +82,13 @@ export default function LifeDashboard({ initialCircles }: LifeDashboardProps) {
 
         {/* B. VÒNG XOAY VỆ TINH (Xoay quanh tâm) */}
         <motion.div
-          className="absolute inset-0 flex items-center justify-center" // Chiếm toàn bộ khung cha
+          className="absolute inset-0 flex items-center justify-center"
           animate={{ rotate: 360 }}
           transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
         >
-          {/* Các nút vệ tinh */}
-          {initialCircles.map((item, i) => {
-            const angle = (i / initialCircles.length) * Math.PI * 2;
+          {/* Các nút vệ tinh - Modules thực tế */}
+          {modules.map((module, i) => {
+            const angle = (i / modules.length) * Math.PI * 2;
             const radius = 260;
             const buttonSize = 110;
             const halfSize = buttonSize / 2;
@@ -143,8 +96,7 @@ export default function LifeDashboard({ initialCircles }: LifeDashboardProps) {
             return (
               <motion.button
                 key={i}
-                onClick={() => setActive(item)}
-                // --- THAY ĐỔI Ở ĐÂY: bg-white (nền trắng), text-gray-900 (chữ đen) ---
+                onClick={() => handleModuleClick(module)}
                 className="absolute w-[110px] h-[110px] bg-white border-4 border-cyan-500/30 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.4)] cursor-pointer flex items-center justify-center text-center text-sm font-extrabold text-gray-900 hover:shadow-[0_0_40px_rgba(255,255,255,0.8)] hover:scale-110 hover:border-cyan-400 transition-all duration-300 z-20 group"
                 style={{
                   top: "50%",
@@ -160,11 +112,11 @@ export default function LifeDashboard({ initialCircles }: LifeDashboardProps) {
 
                 {/* Chữ xoay ngược để luôn đứng thẳng */}
                 <motion.span
-                  className="px-2 leading-tight block drop-shadow-none" // Bỏ shadow chữ để đen rõ hơn
+                  className="px-2 leading-tight block drop-shadow-none"
                   animate={{ rotate: -360 }}
                   transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
                 >
-                  {item}
+                  {module.name}
                 </motion.span>
               </motion.button>
             );
@@ -176,6 +128,39 @@ export default function LifeDashboard({ initialCircles }: LifeDashboardProps) {
       <div className="text-xs uppercase tracking-[0.3em] text-cyan-500/70 font-semibold z-10 animate-pulse">
         Kích hoạt một mô-đun để bắt đầu
       </div>
+
+      {/* NÚT DASHBOARD ĐẶC BIỆT */}
+      <motion.a
+        href="/dashboard"
+        className="fixed bottom-8 right-8 z-30 group"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <div className="relative">
+          {/* Hiệu ứng glow */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 blur-xl opacity-60 group-hover:opacity-100 transition-opacity"></div>
+          
+          {/* Nút chính */}
+          <div className="relative px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl shadow-2xl border-2 border-cyan-400/50 flex items-center gap-3">
+            <svg 
+              className="w-6 h-6 text-white" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" 
+              />
+            </svg>
+            <span className="text-white font-bold text-lg tracking-wide">
+              Dashboard
+            </span>
+          </div>
+        </div>
+      </motion.a>
     </div>
   );
 }

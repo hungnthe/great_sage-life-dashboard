@@ -1,30 +1,28 @@
 // app/page.tsx
 import LifeDashboard from "@/components/LifeDashboard";
 
-// Giả lập hàm lấy dữ liệu từ Server (Sau này bạn sẽ thay bằng Prisma query)
-async function getCirclesData() {
-  // const circles = await prisma.category.findMany(...)
-  
-  // Dữ liệu tạm thời:
+// Các module thực tế từ database
+async function getModulesData() {
+  // Các module chính trong hệ thống Great Sage
   return [
-    "Khóa học",
-    "Công việc",
-    "Sức khỏe",
-    "Dự án",
-    "Thói quen",
-    "Tài chính",
-    "Giải trí" // Thử thêm 1 cái để thấy vòng tròn tự chia đều
+    { name: "Tasks", url: "/tasks" },
+    { name: "Projects", url: "/projects" },
+    { name: "Study Items", url: "/study-items" },
+    { name: "Study Schedule", url: "/study-schedule" },
+    { name: "Habits", url: "/habits" },
+    { name: "Quick Notes", url: "/notes" },
+    { name: "Bookmarks", url: "/bookmarks" },
   ];
 }
 
 export default async function Home() {
-  // 1. Server lấy dữ liệu
-  const circles = await getCirclesData();
+  // 1. Server lấy dữ liệu modules
+  const modules = await getModulesData();
 
   // 2. Server render component Client và truyền data vào
   return (
     <main>
-      <LifeDashboard initialCircles={circles} />
+      <LifeDashboard modules={modules} />
     </main>
   );
 }

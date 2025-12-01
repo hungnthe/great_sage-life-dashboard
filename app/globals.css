@@ -10,6 +10,34 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Great Sage Custom Colors */
+  /* Task Type Colors */
+  --color-task-daily: #3b82f6;
+  --color-task-main: #10b981;
+  --color-task-other: #a855f7;
+  
+  /* Task Status Colors */
+  --color-status-todo: #6b7280;
+  --color-status-in-progress: #eab308;
+  --color-status-done: #10b981;
+  --color-status-cancelled: #ef4444;
+  
+  /* Task Priority Colors */
+  --color-priority-low: #9ca3af;
+  --color-priority-medium: #3b82f6;
+  --color-priority-high: #f97316;
+  --color-priority-urgent: #dc2626;
+  
+  /* Study Item Type Colors */
+  --color-study-subject: #3b82f6;
+  --color-study-course: #10b981;
+  --color-study-self: #a855f7;
+  
+  /* Study Item Status Colors */
+  --color-study-active: #10b981;
+  --color-study-completed: #6b7280;
+  --color-study-dropped: #ef4444;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +50,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Times New Roman', Times, serif;
 }
