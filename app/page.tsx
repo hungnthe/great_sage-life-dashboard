@@ -1,13 +1,30 @@
-import { db } from "@/lib/db";
+// app/page.tsx
+import LifeDashboard from "@/components/LifeDashboard";
+
+// Giả lập hàm lấy dữ liệu từ Server (Sau này bạn sẽ thay bằng Prisma query)
+async function getCirclesData() {
+  // const circles = await prisma.category.findMany(...)
+  
+  // Dữ liệu tạm thời:
+  return [
+    "Khóa học",
+    "Công việc",
+    "Sức khỏe",
+    "Dự án",
+    "Thói quen",
+    "Tài chính",
+    "Giải trí" // Thử thêm 1 cái để thấy vòng tròn tự chia đều
+  ];
+}
 
 export default async function Home() {
-  // Thử lấy tất cả user từ database
-  const users = await db.users.findMany();
+  // 1. Server lấy dữ liệu
+  const circles = await getCirclesData();
 
+  // 2. Server render component Client và truyền data vào
   return (
     <main>
-      <h1>Danh sách Users từ MySQL:</h1>
-      <pre>{JSON.stringify(users, null, 2)}</pre>
+      <LifeDashboard initialCircles={circles} />
     </main>
   );
 }
