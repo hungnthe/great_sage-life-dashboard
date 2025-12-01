@@ -33,7 +33,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { title, description, type, status, priority, dueDate, projectId } = body;
+    const { title, description, type, status, priority, dueDate, projectId, result, requestedBy } = body;
 
     const task = await updateTask(parseInt(id), {
       title,
@@ -43,6 +43,8 @@ export async function PATCH(
       priority,
       dueDate: dueDate ? new Date(dueDate) : null,
       projectId: projectId ? parseInt(projectId) : null,
+      result,
+      requestedBy,
     });
 
     return NextResponse.json(task);

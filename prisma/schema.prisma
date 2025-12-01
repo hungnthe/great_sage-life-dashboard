@@ -53,16 +53,19 @@ model habits {
 }
 
 model projects {
-  id          Int             @id @default(autoincrement()) @db.UnsignedInt
-  user_id     Int             @db.UnsignedInt
-  name        String          @db.VarChar(100)
-  description String?         @db.LongText
-  status      projects_status @default(ACTIVE)
-  start_date  DateTime?       @db.Date
-  created_at  DateTime        @default(now()) @db.DateTime(0)
-  updated_at  DateTime        @default(now()) @db.DateTime(0)
-  users       users           @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_projects_user")
-  tasks       tasks[]
+  id              Int             @id @default(autoincrement()) @db.UnsignedInt
+  user_id         Int             @db.UnsignedInt
+  name            String          @db.VarChar(100)
+  description     String?         @db.LongText
+  status          projects_status @default(ACTIVE)
+  start_date      DateTime?       @db.Date
+  end_date        DateTime?       @db.Date
+  target_hours    Decimal         @default(0) @db.Decimal(10, 2)
+  completed_hours Decimal         @default(0) @db.Decimal(10, 2)
+  created_at      DateTime        @default(now()) @db.DateTime(0)
+  updated_at      DateTime        @default(now()) @db.DateTime(0)
+  users           users           @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_projects_user")
+  tasks           tasks[]
 
   @@index([user_id], map: "fk_projects_user_idx")
 }
@@ -142,6 +145,8 @@ model tasks {
   priority     tasks_priority @default(MEDIUM)
   due_date     DateTime?      @db.DateTime(0)
   completed_at DateTime?      @db.DateTime(0)
+  result       String?        @db.VarChar(500)
+  requested_by String?        @db.VarChar(100)
   created_at   DateTime       @default(now()) @db.DateTime(0)
   updated_at   DateTime       @unique(map: "updated_at_UNIQUE") @default(now()) @db.DateTime(0)
   projects     projects?      @relation(fields: [project_id], references: [id], onDelete: Cascade, map: "fk_tasks_project")

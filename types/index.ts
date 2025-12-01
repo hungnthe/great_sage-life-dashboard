@@ -29,6 +29,8 @@ export interface Task {
   priority: TaskPriority;
   dueDate: Date | null;
   completedAt: Date | null;
+  result: string | null;
+  requestedBy: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +47,9 @@ export interface Project {
   description: string | null;
   status: ProjectStatus;
   startDate: Date | null;
+  endDate: Date | null;
+  targetHours: number;
+  completedHours: number;
   createdAt: Date;
   updatedAt: Date;
   tasks?: Task[];

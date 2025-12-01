@@ -14,15 +14,17 @@ const prisma = new PrismaClient();
  * Property 1: User data isolation
  */
 export async function getTasksByUserId(userId: number): Promise<Task[]> {
-  const tasks = await prisma.tasks.findMany({
-    where: {
-      user_id: userId,
-    },
-    orderBy: [
-      { priority: 'desc' },
-      { due_date: 'asc' },
-    ],
-  });
+  // Use raw query to get new fields not in Prisma client
+  const tasks: any[] = await prisma.$queryRawUnsafe(
+    `SELECT * FROM tasks WHERE user_id = ${userId} ORDER BY 
+    CASE priority 
+      WHEN 'URGENT' THEN 1 
+      WHEN 'HIGH' THEN 2 
+      WHEN 'MEDIUM' THEN 3 
+      WHEN 'LOW' THEN 4 
+    END, 
+    due_date ASC`
+  );
 
   return tasks.map(mapPrismaTaskToTask);
 }
@@ -81,18 +83,14 @@ export async function getTasksCompletedThisWeek(userId: number): Promise<number>
  * Get a single task by ID
  */
 export async function getTaskById(taskId: number): Promise<Task | null> {
-  const task = await prisma.tasks.findUnique({
-    where: {
-      id: taskId,
-    },
-    include: {
-      projects: true,
-    },
-  });
+  // Use raw query to get new fields not in Prisma client
+  const tasks: any[] = await prisma.$queryRawUnsafe(
+    `SELECT * FROM tasks WHERE id = ${taskId}`
+  );
 
-  if (!task) return null;
+  if (!tasks || tasks.length === 0) return null;
 
-  return mapPrismaTaskToTask(task);
+  return mapPrismaTaskToTask(tasks[0]);
 }
 
 /**
@@ -156,22 +154,81 @@ export async function updateTask(
     priority?: TaskPriority;
     dueDate?: Date | null;
     projectId?: number | null;
+    result?: string | null;
+    requestedBy?: string | null;
   }
 ): Promise<Task> {
+  // Use raw SQL for fields not yet in Prisma client
+  if (data.result !== undefined || data.requestedBy !== undefined) {
+    const updates: string[] = [];
+
+    if (data.title !== undefined) {
+      const escaped = data.title ? `'${data.title.replace(/'/g, "''")}'` : 'NULL';
+      updates.push(`title = ${escaped}`);
+    }
+    if (data.description !== undefined) {
+      const escaped = data.description ? `'${data.description.replace(/'/g, "''")}'` : 'NULL';
+      updates.push(`description = ${escaped}`);
+    }
+    if (data.type !== undefined) {
+      updates.push(`type = '${data.type}'`);
+    }
+    if (data.status !== undefined) {
+      updates.push(`status = '${data.status}'`);
+      const completedAt = data.status === 'DONE' ? `'${new Date().toISOString().slice(0, 19).replace('T', ' ')}'` : 'NULL';
+      updates.push(`completed_at = ${completedAt}`);
+    }
+    if (data.priority !== undefined) {
+      updates.push(`priority = '${data.priority}'`);
+    }
+    if (data.dueDate !== undefined) {
+      const dueDate = data.dueDate ? `'${new Date(data.dueDate).toISOString().slice(0, 19).replace('T', ' ')}'` : 'NULL';
+      updates.push(`due_date = ${dueDate}`);
+    }
+    if (data.projectId !== undefined) {
+      updates.push(`project_id = ${data.projectId || 'NULL'}`);
+    }
+    if (data.result !== undefined) {
+      const escaped = data.result ? `'${data.result.replace(/'/g, "''")}'` : 'NULL';
+      updates.push(`result = ${escaped}`);
+    }
+    if (data.requestedBy !== undefined) {
+      const escaped = data.requestedBy ? `'${data.requestedBy.replace(/'/g, "''")}'` : 'NULL';
+      updates.push(`requested_by = ${escaped}`);
+    }
+
+    if (updates.length > 0) {
+      await prisma.$executeRawUnsafe(
+        `UPDATE tasks SET ${updates.join(', ')} WHERE id = ${taskId}`
+      );
+    }
+
+    const task = await prisma.tasks.findUnique({
+      where: { id: taskId },
+    });
+
+    return mapPrismaTaskToTask(task);
+  }
+
+  // Fallback to regular update if no new fields
+  const updateData: any = {};
+  
+  if (data.title !== undefined) updateData.title = data.title;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.type !== undefined) updateData.type = data.type;
+  if (data.status !== undefined) {
+    updateData.status = data.status;
+    updateData.completed_at = data.status === 'DONE' ? new Date() : null;
+  }
+  if (data.priority !== undefined) updateData.priority = data.priority;
+  if (data.dueDate !== undefined) updateData.due_date = data.dueDate;
+  if (data.projectId !== undefined) updateData.project_id = data.projectId;
+
   const task = await prisma.tasks.update({
     where: {
       id: taskId,
     },
-    data: {
-      title: data.title,
-      description: data.description,
-      type: data.type,
-      status: data.status,
-      priority: data.priority,
-      due_date: data.dueDate,
-      project_id: data.projectId,
-      completed_at: data.status === 'DONE' ? new Date() : undefined,
-    },
+    data: updateData,
   });
 
   return mapPrismaTaskToTask(task);
@@ -220,6 +277,8 @@ function mapPrismaTaskToTask(prismaTask: any): Task {
     priority: prismaTask.priority as TaskPriority,
     dueDate: prismaTask.due_date,
     completedAt: prismaTask.completed_at,
+    result: prismaTask.result || null,
+    requestedBy: prismaTask.requested_by || null,
     createdAt: prismaTask.created_at,
     updatedAt: prismaTask.updated_at,
   };

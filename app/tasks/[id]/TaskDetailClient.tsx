@@ -25,6 +25,8 @@ export function TaskDetailClient({ task: initialTask }: TaskDetailClientProps) {
     status: task.status,
     priority: task.priority,
     dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+    result: task.result || '',
+    requestedBy: task.requestedBy || '',
   });
 
   const handleDelete = async () => {
@@ -55,6 +57,8 @@ export function TaskDetailClient({ task: initialTask }: TaskDetailClientProps) {
           status: editForm.status,
           priority: editForm.priority,
           dueDate: editForm.dueDate ? new Date(editForm.dueDate) : null,
+          result: editForm.result || null,
+          requestedBy: editForm.requestedBy || null,
         }),
       });
 
@@ -126,6 +130,8 @@ export function TaskDetailClient({ task: initialTask }: TaskDetailClientProps) {
                         status: task.status,
                         priority: task.priority,
                         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+                        result: task.result || '',
+                        requestedBy: task.requestedBy || '',
                       });
                     }}
                     className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors flex items-center gap-2"
@@ -187,6 +193,18 @@ export function TaskDetailClient({ task: initialTask }: TaskDetailClientProps) {
                   <p className="text-lg text-gray-700 whitespace-pre-wrap leading-relaxed">{task.description}</p>
                 </div>
               )}
+
+              {/* Result and Requested By */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Kết quả</h2>
+                  <p className="text-base text-gray-700">{task.result || <span className="text-gray-400 italic">Chưa có</span>}</p>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Người yêu cầu</h2>
+                  <p className="text-base text-gray-700">{task.requestedBy || <span className="text-gray-400 italic">Chưa có</span>}</p>
+                </div>
+              </div>
 
               {/* Metadata */}
               <div className="pt-8 border-t border-gray-200 text-base text-gray-600 space-y-2">
@@ -280,6 +298,34 @@ export function TaskDetailClient({ task: initialTask }: TaskDetailClientProps) {
                     value={editForm.dueDate}
                     onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
                     className="w-full px-5 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-lg font-medium text-gray-700 mb-3">
+                    Kết quả
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.result}
+                    onChange={(e) => setEditForm({ ...editForm, result: e.target.value })}
+                    className="w-full px-5 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    placeholder="Kết quả công việc..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-lg font-medium text-gray-700 mb-3">
+                    Người yêu cầu
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.requestedBy}
+                    onChange={(e) => setEditForm({ ...editForm, requestedBy: e.target.value })}
+                    className="w-full px-5 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    placeholder="Tên người yêu cầu..."
                   />
                 </div>
               </div>
